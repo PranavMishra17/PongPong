@@ -1,0 +1,45 @@
+{
+    "name": "TableTennisInputActions",
+    "maps": [
+        {
+            "name": "Gameplay",
+            "id": "97949423-ef9d-4897-bfba-6d4145d099c9",
+            "actions": [
+                {
+                    "name": "Move",
+                    "type": "Value",
+                    "id": "f6b48337-32e5-4286-b4db-5153cd92b3ef",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "3b54fa4e-1ea2-44ae-8c6d-2fab5137f7c3",
+                    "path": "S",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "48b692f6-385d-4374-af54-42c1d289f73e",
+                    "path": "W",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
