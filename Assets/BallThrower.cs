@@ -37,6 +37,7 @@ public class BallThrower : MonoBehaviour
     private bool isServing = false;
     private GameObject currentBall;
     private GameObject currentServingBat;
+    private float throwForce;
 
     private void Update()
     {
@@ -140,27 +141,50 @@ public class BallThrower : MonoBehaviour
     {
         if (currentBall != null)
         {
-            // Re-enable physics
-            Rigidbody ballRb = currentBall.GetComponent<Rigidbody>();
-            if (ballRb != null)
-            {
-                ballRb.isKinematic = false;
+            // Get ray tracer component
+            BallRayTracer rayTracer = currentBall.GetComponent<BallRayTracer>();
 
-                // Calculate throw force
+            if (rayTracer != null)
+            {
+                // Calculate serve direction and parameters
                 float throwForce = Random.Range(throwForceRange.x, throwForceRange.y);
                 float throwHeight = Random.Range(throwHeightRange.x, throwHeightRange.y);
                 float throwAngle = Random.Range(throwAngleRange.x, throwAngleRange.y);
 
-                Vector3 forceDirection = new Vector3(
-                    -throwForce, // Negative X (toward player)
-                    throwHeight,
-                    Mathf.Sin(throwAngle * Mathf.Deg2Rad) * throwForce * 0.3f
-                );
+                Vector3 serveDirection = new Vector3(
+                    -1f, // Negative X (toward player)
+                    throwHeight / throwForce,
+                    Mathf.Sin(throwAngle * Mathf.Deg2Rad) * 0.3f
+                ).normalized;
 
-                ballRb.AddForce(forceDirection, ForceMode.Impulse);
+                // Debug info for bat
+                Vector3 batDirection = (hitPoint - currentServingBat.transform.position).normalized;
+                float batAngle = Vector3.Angle(batDirection, Vector3.forward);
+                float batSpeed = throwForce;
+
+                // Start ray tracing
+                rayTracer.StartRayTrace(hitPoint, serveDirection, throwForce, batDirection, batAngle, batSpeed, throwForce);
 
                 // Auto cleanup
                 Destroy(currentBall, ballLifetime);
+            }
+            else
+            {
+                // Fallback to physics if no ray tracer
+                Rigidbody ballRb = currentBall.GetComponent<Rigidbody>();
+                if (ballRb != null)
+                {
+                    ballRb.isKinematic = false;
+
+                    Vector3 forceDirection = new Vector3(
+                        -Random.Range(throwForceRange.x, throwForceRange.y),
+                        Random.Range(throwHeightRange.x, throwHeightRange.y),
+                        Mathf.Sin(Random.Range(throwAngleRange.x, throwAngleRange.y) * Mathf.Deg2Rad) * throwForce * 0.3f
+                    );
+
+                    ballRb.AddForce(forceDirection, ForceMode.Impulse);
+                    Destroy(currentBall, ballLifetime);
+                }
             }
         }
 

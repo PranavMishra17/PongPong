@@ -14,8 +14,9 @@ GameObject:
   - component: {fileID: 4094841146300736609}
   - component: {fileID: 5567984018212360510}
   - component: {fileID: 8506857874750707494}
+  - component: {fileID: 5063780454368881878}
   m_Layer: 0
-  m_Name: BALL2
+  m_Name: PONG_Ray_traced
   m_TagString: Ball
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 1913400785870906216}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -30.46, y: 13.41, z: -15.04}
+  m_LocalPosition: {x: -29.467422, y: 14.14, z: -8.318433}
   m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -151,3 +152,29 @@ MonoBehaviour:
   minSpeed: 2
   bounceSound: {fileID: 0}
   hitSound: {fileID: 0}
+--- !u!114 &5063780454368881878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913400785870906216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93524a92ccf85d44bbb7e7c17c30c033, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cornerA: {fileID: 0}
+  cornerB: {fileID: 0}
+  cornerC: {fileID: 0}
+  cornerD: {fileID: 0}
+  netHeight: 2.6
+  useRayTracing: 1
+  ballSpeed: 8
+  maxBounces: 3
+  gravityInfluence: 0.5
+  enableSpin: 1
+  spinAngleRange: {x: 5, y: 15}
+  spinProbability: 0.7
+  showDebugRays: 1
+  showDebugInfo: 1
