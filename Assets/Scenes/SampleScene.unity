@@ -736,8 +736,8 @@ MonoBehaviour:
   serveAreaSize: {x: 4, y: 35}
   serveAreaHeight: 0
   throwPoint: {fileID: 29320286}
-  servingBat: {fileID: 0}
-  ballPrefab: {fileID: 1913400785870906216, guid: 222de1252e0cd3748a5673192ff9e4cf, type: 3}
+  servingBat: {fileID: 4363712265566246180, guid: fd6108cb37852a54cb78d372807384a0, type: 3}
+  ballPrefab: {fileID: 1913400785870906216, guid: dbc117e276d89c049b092ff80503ca5f, type: 3}
   servingBatPrefab: {fileID: 4363712265566246180, guid: fd6108cb37852a54cb78d372807384a0, type: 3}
   serveAnimationTime: 1.5
   ballDropHeight: 6
@@ -1444,6 +1444,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PONG_Ray_traced
       objectReference: {fileID: 0}
+    - target: {fileID: 1913400785870906216, guid: dbc117e276d89c049b092ff80503ca5f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5063780454368881878, guid: dbc117e276d89c049b092ff80503ca5f, type: 3}
       propertyPath: cornerA
       value: 
@@ -1462,7 +1466,7 @@ PrefabInstance:
       objectReference: {fileID: 851674719}
     - target: {fileID: 8157999464712687747, guid: dbc117e276d89c049b092ff80503ca5f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -29.467422
+      value: -30.93
       objectReference: {fileID: 0}
     - target: {fileID: 8157999464712687747, guid: dbc117e276d89c049b092ff80503ca5f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1530,7 +1534,7 @@ Transform:
   m_GameObject: {fileID: 1256795179}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -2.2, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1875,10 +1879,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93524a92ccf85d44bbb7e7c17c30c033, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cornerA: {fileID: 0}
-  cornerB: {fileID: 0}
-  cornerC: {fileID: 0}
-  cornerD: {fileID: 0}
+  cornerA: {x: -7.5, y: 0, z: 7.5}
+  cornerB: {x: 7.5, y: 0, z: 7.5}
+  cornerC: {x: 7.5, y: 0, z: -7.5}
+  cornerD: {x: -7.5, y: 0, z: -7.5}
   netHeight: 0.15
   useRayTracing: 1
   ballSpeed: 8

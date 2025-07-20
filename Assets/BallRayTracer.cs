@@ -46,6 +46,8 @@ public class BallRayTracer : MonoBehaviour
         {
             ballRb.isKinematic = true; // Disable physics when using ray tracing
         }
+        
+        Debug.Log("BallRayTracer initialized. Table bounds: A=" + cornerA + " B=" + cornerB + " C=" + cornerC + " D=" + cornerD);
     }
 
     private void Update()
@@ -65,7 +67,21 @@ public class BallRayTracer : MonoBehaviour
         batSpeed = batSpeedVal;
         batForce = batForceVal;
 
-        if (!useRayTracing) return;
+        // Debug print all input parameters
+        Debug.Log("=== BALL RAY TRACE STARTED ===");
+        Debug.Log("Start Position: " + startPos.ToString("F3"));
+        Debug.Log("Initial Direction: " + initialDirection.ToString("F3"));
+        Debug.Log("Initial Speed: " + initialSpeed.ToString("F2"));
+        Debug.Log("Bat Direction: " + batDir.ToString("F3"));
+        Debug.Log("Bat Angle: " + batAngleVal.ToString("F2"));
+        Debug.Log("Bat Speed: " + batSpeedVal.ToString("F2"));
+        Debug.Log("Bat Force: " + batForceVal.ToString("F2"));
+
+        if (!useRayTracing)
+        {
+            Debug.Log("Ray tracing disabled, using physics instead");
+            return;
+        }
 
         // Clear previous path
         tracedPath.Clear();
@@ -80,6 +96,11 @@ public class BallRayTracer : MonoBehaviour
         {
             isFollowingPath = true;
             transform.position = tracedPath[0];
+            Debug.Log("Starting ball movement with " + tracedPath.Count + " path points");
+        }
+        else
+        {
+            Debug.LogWarning("No path points calculated! Ball will not move.");
         }
     }
 
@@ -90,51 +111,78 @@ public class BallRayTracer : MonoBehaviour
         int bounceCount = 0;
 
         tracedPath.Add(currentPos);
+        Debug.Log("Path calculation started from: " + currentPos.ToString("F3") + " in direction: " + currentDir.ToString("F3"));
 
         while (bounceCount < maxBounces)
         {
-            // Find intersection with table or net
-            RaycastHit hit;
-            if (Physics.Raycast(currentPos, currentDir, out hit, 50f))
+            // Check intersection with virtual table plane
+            Vector3 hitPoint;
+            Vector3 hitNormal;
+            bool hitTable = false;
+            bool hitNet = false;
+
+            // Check intersection with table plane (Y = cornerA.y)
+            if (IntersectWithTablePlane(currentPos, currentDir, out hitPoint, out hitNormal))
             {
-                if (hit.collider.CompareTag("Table") || hit.collider.CompareTag("Net"))
+                Debug.Log("Table plane intersection found at: " + hitPoint.ToString("F3"));
+                
+                // Check if hit point is within table bounds
+                if (IsPointInTableBounds(hitPoint))
                 {
-                    // Add intersection point to path
-                    Vector3 hitPoint = hit.point;
-
-                    // Add intermediate points for smooth movement
-                    AddIntermediatePoints(currentPos, hitPoint);
-                    tracedPath.Add(hitPoint);
-                    debugPoints.Add(hitPoint);
-
-                    // Calculate bounce direction
-                    Vector3 bounceDir = Vector3.Reflect(currentDir, hit.normal);
-
-                    // Apply spin if enabled
-                    if (enableSpin && Random.value < spinProbability)
+                    hitTable = true;
+                    Debug.Log("Hit point is within table bounds");
+                    
+                    // Check if ball crossed the net (middle of table)
+                    float netZ = (cornerA.z + cornerD.z) * 0.5f;
+                    if (Mathf.Abs(hitPoint.z - netZ) < 0.1f && hitPoint.y <= netHeight)
                     {
-                        bounceDir = ApplySpin(bounceDir, hit.normal);
-                    }
-
-                    // Apply gravity influence
-                    bounceDir.y -= gravityInfluence * (bounceCount + 1) * 0.1f;
-                    bounceDir = bounceDir.normalized;
-
-                    // Update for next iteration
-                    currentPos = hitPoint + bounceDir * 0.01f; // Small offset to avoid re-hitting
-                    currentDir = bounceDir;
-                    bounceCount++;
-
-                    // Check if ball crossed net
-                    if (hit.collider.CompareTag("Net"))
-                    {
-                        break;
+                        hitNet = true;
+                        Debug.Log("Ball hit the net at: " + hitPoint.ToString("F3"));
+                        break; // Ball hit the net, stop
                     }
                 }
                 else
                 {
-                    break; // Hit something else, stop tracing
+                    Debug.Log("Hit point is outside table bounds");
                 }
+            }
+
+            // If no table hit, check for net collision
+            if (!hitTable && IntersectWithNetPlane(currentPos, currentDir, out hitPoint, out hitNormal))
+            {
+                hitNet = true;
+                Debug.Log("Ball hit the net plane at: " + hitPoint.ToString("F3"));
+                break; // Ball hit the net, stop
+            }
+
+            if (hitTable)
+            {
+                // Add intermediate points for smooth movement
+                AddIntermediatePoints(currentPos, hitPoint);
+                tracedPath.Add(hitPoint);
+                debugPoints.Add(hitPoint);
+
+                // Calculate bounce direction (reflect off table surface)
+                Vector3 bounceDir = Vector3.Reflect(currentDir, Vector3.up);
+                Debug.Log("Bounce #" + (bounceCount + 1) + " - Original dir: " + currentDir.ToString("F3") + " Bounce dir: " + bounceDir.ToString("F3"));
+
+                // Apply spin if enabled
+                if (enableSpin && Random.value < spinProbability)
+                {
+                    bounceDir = ApplySpin(bounceDir, Vector3.up);
+                    Debug.Log("Spin applied. New direction: " + bounceDir.ToString("F3"));
+                }
+
+                // Apply gravity influence
+                bounceDir.y -= gravityInfluence * (bounceCount + 1) * 0.1f;
+                bounceDir = bounceDir.normalized;
+
+                // Update for next iteration
+                currentPos = hitPoint + Vector3.up * 0.01f; // Small offset above table
+                currentDir = bounceDir;
+                bounceCount++;
+                
+                Debug.Log("Next iteration starting from: " + currentPos.ToString("F3") + " direction: " + currentDir.ToString("F3"));
             }
             else
             {
@@ -142,9 +190,80 @@ public class BallRayTracer : MonoBehaviour
                 Vector3 finalPoint = currentPos + currentDir * 10f;
                 AddIntermediatePoints(currentPos, finalPoint);
                 tracedPath.Add(finalPoint);
+                Debug.Log("No more intersections. Final point: " + finalPoint.ToString("F3"));
                 break;
             }
         }
+        
+        Debug.Log("Path calculation completed. Total points: " + tracedPath.Count + " Bounces: " + bounceCount);
+    }
+
+    private bool IntersectWithTablePlane(Vector3 rayStart, Vector3 rayDir, out Vector3 hitPoint, out Vector3 hitNormal)
+    {
+        hitPoint = Vector3.zero;
+        hitNormal = Vector3.up;
+
+        // Table plane is at Y = cornerA.y
+        float planeY = cornerA.y;
+        
+        // Check if ray is going towards the plane
+        if (Mathf.Abs(rayDir.y) < 0.001f)
+        {
+            Debug.Log("Ray is parallel to table plane");
+            return false; // Ray parallel to plane
+        }
+        
+        // Calculate intersection distance
+        float t = (planeY - rayStart.y) / rayDir.y;
+        
+        // Check if intersection is in front of ray
+        if (t <= 0)
+        {
+            Debug.Log("Table plane intersection is behind ray start");
+            return false;
+        }
+        
+        // Calculate hit point
+        hitPoint = rayStart + rayDir * t;
+        Debug.Log("Table plane intersection calculated: t=" + t.ToString("F3") + " hitPoint=" + hitPoint.ToString("F3"));
+        return true;
+    }
+
+    private bool IntersectWithNetPlane(Vector3 rayStart, Vector3 rayDir, out Vector3 hitPoint, out Vector3 hitNormal)
+    {
+        hitPoint = Vector3.zero;
+        hitNormal = Vector3.forward;
+
+        // Net is at the middle Z of the table
+        float netZ = (cornerA.z + cornerD.z) * 0.5f;
+        
+        // Check if ray is going towards the net plane
+        if (Mathf.Abs(rayDir.z) < 0.001f) return false; // Ray parallel to net
+        
+        // Calculate intersection distance
+        float t = (netZ - rayStart.z) / rayDir.z;
+        
+        // Check if intersection is in front of ray
+        if (t <= 0) return false;
+        
+        // Calculate hit point
+        hitPoint = rayStart + rayDir * t;
+        
+        // Check if hit point is within net bounds (X and Y)
+        bool withinX = hitPoint.x >= cornerD.x && hitPoint.x <= cornerC.x;
+        bool withinY = hitPoint.y >= cornerA.y && hitPoint.y <= (cornerA.y + netHeight);
+        
+        return withinX && withinY;
+    }
+
+    private bool IsPointInTableBounds(Vector3 point)
+    {
+        // Check if point is within the rectangular table bounds
+        bool withinX = point.x >= cornerD.x && point.x <= cornerC.x;
+        bool withinZ = point.z >= cornerD.z && point.z <= cornerA.z;
+        
+        Debug.Log("Bounds check for point " + point.ToString("F3") + ": X=" + withinX + " Z=" + withinZ);
+        return withinX && withinZ;
     }
 
     private void AddIntermediatePoints(Vector3 start, Vector3 end)
@@ -162,6 +281,8 @@ public class BallRayTracer : MonoBehaviour
 
             tracedPath.Add(intermediatePoint);
         }
+        
+        Debug.Log("Added " + (pointCount - 1) + " intermediate points between " + start.ToString("F3") + " and " + end.ToString("F3"));
     }
 
     private Vector3 ApplySpin(Vector3 bounceDirection, Vector3 surfaceNormal)
@@ -180,6 +301,7 @@ public class BallRayTracer : MonoBehaviour
         if (currentPathIndex >= tracedPath.Count)
         {
             isFollowingPath = false;
+            Debug.Log("Ball finished following path");
             return;
         }
 
@@ -195,6 +317,11 @@ public class BallRayTracer : MonoBehaviour
         {
             transform.position = targetPos;
             currentPathIndex++;
+            
+            if (currentPathIndex < tracedPath.Count)
+            {
+                Debug.Log("Ball reached waypoint " + currentPathIndex + "/" + tracedPath.Count + " at position: " + targetPos.ToString("F3"));
+            }
         }
         else
         {
@@ -232,12 +359,28 @@ public class BallRayTracer : MonoBehaviour
         Gizmos.DrawLine(cornerC, cornerD);
         Gizmos.DrawLine(cornerD, cornerA);
 
-        // Draw net line
+        // Draw virtual table plane (semi-transparent)
+        Gizmos.color = new Color(0, 1, 0, 0.3f);
+        Vector3 tableCenter = (cornerA + cornerB + cornerC + cornerD) / 4f;
+        Vector3 tableSize = new Vector3(
+            Vector3.Distance(cornerD, cornerC),
+            0.01f,
+            Vector3.Distance(cornerD, cornerA)
+        );
+        Gizmos.DrawCube(tableCenter, tableSize);
+
+        // Draw net line and plane
         Vector3 netStart = Vector3.Lerp(cornerA, cornerD, 0.5f);
         Vector3 netEnd = Vector3.Lerp(cornerB, cornerC, 0.5f);
         Gizmos.color = Color.red;
         Gizmos.DrawLine(netStart, netEnd);
         Gizmos.DrawLine(netStart + Vector3.up * netHeight, netEnd + Vector3.up * netHeight);
+        
+        // Draw net plane (semi-transparent)
+        Gizmos.color = new Color(1, 0, 0, 0.2f);
+        Vector3 netCenter = (netStart + netEnd) / 2f + Vector3.up * (netHeight / 2f);
+        Vector3 netSize = new Vector3(Vector3.Distance(netStart, netEnd), netHeight, 0.02f);
+        Gizmos.DrawCube(netCenter, netSize);
 
         // Draw traced path
         if (tracedPath.Count > 1)
@@ -262,6 +405,13 @@ public class BallRayTracer : MonoBehaviour
             Gizmos.color = Color.magenta;
             Gizmos.DrawWireSphere(pointOfContact, 0.15f);
         }
+
+        // Draw corner points
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(cornerA, 0.1f);
+        Gizmos.DrawWireSphere(cornerB, 0.1f);
+        Gizmos.DrawWireSphere(cornerC, 0.1f);
+        Gizmos.DrawWireSphere(cornerD, 0.1f);
     }
 
     private void OnGUI()
@@ -274,7 +424,7 @@ public class BallRayTracer : MonoBehaviour
         GUILayout.Label("Ball Ray Tracer Debug");
         GUILayout.Label($"Point of Contact: {pointOfContact}");
         GUILayout.Label($"Bat Direction: {batDirection}");
-        GUILayout.Label($"Bat Angle: {batAngle:F2}°");
+        GUILayout.Label($"Bat Angle: {batAngle:F2}ï¿½");
         GUILayout.Label($"Bat Speed: {batSpeed:F2}");
         GUILayout.Label($"Bat Force: {batForce:F2}");
         GUILayout.Label($"Path Points: {tracedPath.Count}");

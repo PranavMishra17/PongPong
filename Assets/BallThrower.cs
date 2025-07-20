@@ -95,6 +95,13 @@ public class BallThrower : MonoBehaviour
         if (servingBatPrefab != null)
         {
             currentServingBat = Instantiate(servingBatPrefab, batSpawnPoint, Quaternion.identity);
+            
+            // Make bat face towards the center of the table (negative X direction)
+            Vector3 tableCenter = Vector3.zero; // Assuming table is at origin
+            Vector3 directionToTable = (tableCenter - batSpawnPoint).normalized;
+            currentServingBat.transform.LookAt(tableCenter, Vector3.up);
+            
+            Debug.Log("Serving bat spawned at " + batSpawnPoint.ToString("F3") + " facing towards table center");
         }
 
         // Start serve animation

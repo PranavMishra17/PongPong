@@ -164,10 +164,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93524a92ccf85d44bbb7e7c17c30c033, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cornerA: {fileID: 0}
-  cornerB: {fileID: 0}
-  cornerC: {fileID: 0}
-  cornerD: {fileID: 0}
+  cornerA: {x: 30, y: 12.5, z: 18}
+  cornerB: {x: 30, y: 12.5, z: -18}
+  cornerC: {x: -35, y: 12.5, z: -18}
+  cornerD: {x: -35, y: 12.5, z: 18}
   netHeight: 2.6
   useRayTracing: 1
   ballSpeed: 8
